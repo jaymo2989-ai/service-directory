@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vetted local service providers, near you | Service Directory</title>
+<meta name="description" content="Find vetted plumbers, electricians, cleaners, tutors and more — every listing personally reviewed before it goes live.">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <svg viewBox="0 0 26 26" fill="none" stroke="#0F5C4A" stroke-width="1.8"><circle cx="13" cy="13" r="10"/><path d="M9 13.2l2.6 2.6L17.5 10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Karibu Directory
+    </a>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <nav class="nav-links" id="navLinks">
+      <a href="search.html">Browse all</a>
+      <a href="index.html#how-it-works">How it works</a>
+      <a href="index.html#for-providers">List your business</a>
+      <div class="nav-actions" id="navAuthArea"></div>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- ---------- Hero: search is the product ---------- -->
+  <section style="padding-top:64px; padding-bottom:56px;">
+    <div class="wrap" style="max-width:820px; text-align:left;">
+      <p class="eyebrow">Nairobi &amp; surrounding areas</p>
+      <h1 style="font-size:clamp(2.1rem, 4.2vw, 3rem); max-width:16ch; margin-top:14px;">Find a service provider you can actually trust.</h1>
+      <p class="lede" style="margin-top:16px; max-width:48ch;">Every listing here has been personally checked before it went live — no anonymous profiles, no pay-to-fake-reviews.</p>
+
+      <form id="heroSearchForm" style="margin-top:32px;">
+        <div class="search-bar">
+          <input class="search-field" type="text" id="heroQuery" placeholder="What service do you need? e.g. plumber, tutor">
+          <input class="search-field" type="text" id="heroLocation" placeholder="Town or estate" style="max-width:220px;">
+          <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+      </form>
+      <p class="muted" style="margin-top:14px;">
+        <span id="statLine">Loading directory stats…</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ---------- Categories ---------- -->
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Browse by category</h2>
+        <a href="search.html" class="see-all">See all categories →</a>
+      </div>
+      <div class="category-grid" id="categoryGrid">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- Featured ---------- -->
+  <section style="background:var(--paper-2);">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Featured providers</h2>
+        <a href="search.html" class="see-all">Browse all →</a>
+      </div>
+      <div class="card-grid" id="featuredGrid"><div class="spinner"></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Top rated ---------- -->
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Highly rated, by real customers</h2>
+      </div>
+      <div class="card-grid" id="topRatedGrid"><div class="spinner"></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Recently added ---------- -->
+  <section style="background:var(--paper-2);">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Recently added</h2>
+      </div>
+      <div class="card-grid" id="recentGrid"><div class="spinner"></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- How it works ---------- -->
+  <section id="how-it-works">
+    <div class="wrap" style="max-width:900px;">
+      <div class="section-head"><h2>How Karibu Directory works</h2></div>
+      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:28px;">
+        <div>
+          <h4 style="font-size:1.05rem; margin-bottom:8px;">Search by service and location</h4>
+          <p class="muted">Tell us what you need and where — we'll show you providers who actually serve your area.</p>
+        </div>
+        <div>
+          <h4 style="font-size:1.05rem; margin-bottom:8px;">Check reviews and details</h4>
+          <p class="muted">See ratings from real customers, availability, and pricing before you reach out.</p>
+        </div>
+        <div>
+          <h4 style="font-size:1.05rem; margin-bottom:8px;">Contact directly, for free</h4>
+          <p class="muted">Call, WhatsApp, or send a quote request straight to the provider — no middleman fees.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- CTA for providers ---------- -->
+  <section id="for-providers">
+    <div class="wrap" style="background:var(--ink); color:var(--paper); border-radius:6px; padding:48px 40px; display:flex; justify-content:space-between; align-items:center; gap:24px; flex-wrap:wrap;">
+      <div style="max-width:520px;">
+        <h2 style="color:#fff; font-size:1.6rem;">Run a service business? Get found by customers near you.</h2>
+        <p class="muted" style="color:#B7BBB4; margin-top:10px;">Listings are added personally, after a quick conversation — get in touch and we'll walk you through it.</p>
+      </div>
+      <a id="providerContactLink" href="#" class="btn btn-primary" style="flex-shrink:0;">Get listed</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <h5>Karibu Directory</h5>
+        <p style="color:#B7BBB4;">A personally vetted directory of local service providers. Every listing reviewed before it goes live.</p>
+      </div>
+      <div>
+        <h5>Explore</h5>
+        <a href="search.html">Browse all providers</a>
+        <a href="index.html#how-it-works">How it works</a>
+        <a href="index.html#faq">FAQ</a>
+      </div>
+      <div id="footerContact">
+        <h5>Contact</h5>
+        <p>Loading…</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> Karibu Directory. All rights reserved.</span>
+      <span>Owner-managed — every listing reviewed by hand.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/api.js"></script>
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+
+document.getElementById('heroSearchForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const q = document.getElementById('heroQuery').value.trim();
+  const loc = document.getElementById('heroLocation').value.trim();
+  const params = new URLSearchParams();
+  if (q) params.set('q', q);
+  if (loc) params.set('town', loc);
+  window.location.href = `search.html?${params.toString()}`;
+});
+
+function renderProviderCard(p) {
+  const img = p.image_url
+    ? `<img class="provider-avatar" src="${API_BASE.replace('/api','')}${p.image_url}" alt="">`
+    : `<div class="provider-avatar">${initials(p.name)}</div>`;
+  return `
+    <a href="provider.html?id=${p.id}" class="provider-card ${p.featured ? 'featured' : ''}">
+      <div class="provider-card-top">
+        ${img}
+        <div>
+          <h3>${escapeHtml(p.name)}</h3>
+          <p class="provider-meta">${escapeHtml(p.category_name)} · ${escapeHtml(p.location_town)}</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        ${p.verified ? `<span class="badge badge-verified">Verified</span>` : ''}
+        ${p.featured ? `<span class="badge badge-featured">Featured</span>` : ''}
+      </div>
+      <p class="provider-bio">${escapeHtml((p.bio || '').slice(0, 90))}${(p.bio || '').length > 90 ? '…' : ''}</p>
+      <div class="rating">
+        ${starIcon()}
+        <span>${p.rating_count > 0 ? `${p.rating_avg.toFixed(1)} (${p.rating_count})` : 'No reviews yet'}</span>
+      </div>
+    </a>`;
+}
+
+async function loadGrid(elementId, path) {
+  const el = document.getElementById(elementId);
+  try {
+    const rows = await apiRequest(path);
+    if (!rows.length) {
+      el.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">Nothing here yet — check back soon.</div>`;
+      return;
+    }
+    el.innerHTML = rows.map(renderProviderCard).join('');
+  } catch (err) {
+    el.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">Couldn't load listings right now.</div>`;
+  }
+}
+
+async function loadCategories() {
+  const el = document.getElementById('categoryGrid');
+  try {
+    const cats = await apiRequest('/categories');
+    el.innerHTML = cats.map(c => `
+      <a href="search.html?category=${c.slug}" class="category-card">
+        ${iconSvg(c.icon)}
+        <h4>${escapeHtml(c.name)}</h4>
+        <span class="count">${c.providerCount} provider${c.providerCount === 1 ? '' : 's'}</span>
+      </a>
+    `).join('');
+    const total = cats.reduce((sum, c) => sum + c.providerCount, 0);
+    document.getElementById('statLine').textContent = `${total} vetted providers across ${cats.length} categories — and growing.`;
+  } catch {
+    el.innerHTML = `<div class="empty-state">Couldn't load categories.</div>`;
+  }
+}
+
+async function loadOwnerContact() {
+  try {
+    const owner = await apiRequest('/content/owner');
+    document.getElementById('footerContact').innerHTML = `
+      <h5>Contact</h5>
+      <p>${escapeHtml(owner.name || '')}</p>
+      <a href="https://wa.me/${owner.phone}">WhatsApp: ${owner.phone}</a>
+      <a href="mailto:${owner.email}">${owner.email}</a>
+    `;
+    document.getElementById('providerContactLink').href = `https://wa.me/${owner.phone}?text=${encodeURIComponent("Hi, I'd like to get my business listed on Karibu Directory.")}`;
+  } catch { /* footer stays generic if this fails */ }
+}
+
+loadCategories();
+loadGrid('featuredGrid', '/providers/featured');
+loadGrid('topRatedGrid', '/providers/top-rated');
+loadGrid('recentGrid', '/providers/recent');
+loadOwnerContact();
+</script>
+
+</body>
+</html>

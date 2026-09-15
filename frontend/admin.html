@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin | Karibu Directory</title>
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  body{ background:var(--paper-2); }
+  .admin-shell{ display:grid; grid-template-columns:220px 1fr; min-height:100vh; }
+  .admin-sidebar{ background:var(--ink); color:#D8DAD5; padding:26px 18px; }
+  .admin-sidebar h2{ color:#fff; font-size:1.15rem; margin-bottom:24px; }
+  .admin-sidebar button{
+    display:block; width:100%; text-align:left; background:none; border:none; color:#B7BBB4;
+    padding:10px 12px; border-radius:4px; cursor:pointer; font-size:0.92rem; margin-bottom:4px;
+  }
+  .admin-sidebar button.active{ background:rgba(255,255,255,0.08); color:#fff; }
+  .admin-main{ padding:32px 36px; }
+  .stat-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:16px; margin-bottom:32px; }
+  .stat-box{ background:var(--white); border:1px solid var(--line); border-radius:4px; padding:18px; }
+  .stat-box .num{ font-family:'Newsreader', serif; font-size:1.8rem; font-weight:600; }
+  .stat-box .lbl{ font-size:0.82rem; color:var(--grey); margin-top:4px; }
+  table{ width:100%; border-collapse:collapse; background:var(--white); border:1px solid var(--line); border-radius:4px; overflow:hidden; }
+  th, td{ text-align:left; padding:11px 14px; border-bottom:1px solid var(--line); font-size:0.88rem; }
+  th{ background:var(--paper-2); font-weight:600; }
+  tr:last-child td{ border-bottom:none; }
+  .admin-panel{ display:none; }
+  .admin-panel.active{ display:block; }
+  .toolbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px; }
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(26,36,32,0.5); display:none; align-items:center; justify-content:center; z-index:150; padding:20px; }
+  .modal-backdrop.open{ display:flex; }
+  .modal{ background:var(--white); border-radius:6px; padding:28px; max-width:560px; width:100%; max-height:88vh; overflow-y:auto; }
+</style>
+</head>
+<body>
+
+<!-- ---------- Login gate ---------- -->
+<div id="loginGate" class="form-card" style="margin:80px auto;">
+  <h1 style="font-size:1.4rem; margin-bottom:6px;">Admin login</h1>
+  <p class="muted" style="margin-bottom:22px;">Restricted access.</p>
+  <form id="adminLoginForm">
+    <div class="field"><label>Email</label><input type="email" id="adminEmail" required></div>
+    <div class="field"><label>Password</label><input type="password" id="adminPassword" required></div>
+    <button class="btn btn-primary btn-block">Log in</button>
+  </form>
+</div>
+
+<!-- ---------- Admin shell ---------- -->
+<div class="admin-shell" id="adminShell" style="display:none;">
+  <aside class="admin-sidebar">
+    <h2>Karibu Admin</h2>
+    <button class="nav-tab active" data-panel="overview">Overview</button>
+    <button class="nav-tab" data-panel="providers">Providers</button>
+    <button class="nav-tab" data-panel="categories">Categories</button>
+    <button class="nav-tab" data-panel="reviews">Reviews</button>
+    <button class="nav-tab" data-panel="reports">Reports</button>
+    <button class="nav-tab" data-panel="inquiries">Inquiries</button>
+    <button class="nav-tab" data-panel="users">Customers</button>
+    <button class="nav-tab" data-panel="content">Content</button>
+    <hr style="border:none; border-top:1px solid rgba(255,255,255,0.15); margin:16px 0;">
+    <button id="adminLogoutBtn">Log out</button>
+  </aside>
+
+  <main class="admin-main">
+
+    <div id="panel-overview" class="admin-panel active">
+      <h1 style="font-size:1.5rem; margin-bottom:20px;">Overview</h1>
+      <div class="stat-grid" id="statGrid"></div>
+      <h3 style="font-size:1.05rem; margin-bottom:10px;">Top categories</h3>
+      <table><tbody id="topCatTable"></tbody></table>
+    </div>
+
+    <div id="panel-providers" class="admin-panel">
+      <div class="toolbar">
+        <h1 style="font-size:1.5rem;">Providers</h1>
+        <div style="display:flex; gap:8px;">
+          <select id="providerStatusFilter" style="padding:8px; border:1px solid var(--line); border-radius:4px;">
+            <option value="">All statuses</option>
+            <option value="approved">Approved</option>
+            <option value="suspended">Suspended</option>
+            <option value="removed">Removed</option>
+          </select>
+          <button class="btn btn-primary btn-sm" id="addProviderBtn">+ Add provider</button>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Name</th><th>Category</th><th>Location</th><th>Rating</th><th>Status</th><th>Tier</th><th>Actions</th></tr></thead>
+        <tbody id="providersTable"></tbody>
+      </table>
+    </div>
+
+    <div id="panel-categories" class="admin-panel">
+      <div class="toolbar">
+        <h1 style="font-size:1.5rem;">Categories</h1>
+        <button class="btn btn-primary btn-sm" id="addCategoryBtn">+ Add category</button>
+      </div>
+      <table><thead><tr><th>Name</th><th>Slug</th><th>Actions</th></tr></thead><tbody id="categoriesTable"></tbody></table>
+    </div>
+
+    <div id="panel-reviews" class="admin-panel">
+      <h1 style="font-size:1.5rem; margin-bottom:18px;">Reviews</h1>
+      <table><thead><tr><th>Provider</th><th>Customer</th><th>Rating</th><th>Status</th><th>Actions</th></tr></thead><tbody id="reviewsTable"></tbody></table>
+    </div>
+
+    <div id="panel-reports" class="admin-panel">
+      <h1 style="font-size:1.5rem; margin-bottom:18px;">Reports</h1>
+      <table><thead><tr><th>Type</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead><tbody id="reportsTable"></tbody></table>
+    </div>
+
+    <div id="panel-inquiries" class="admin-panel">
+      <h1 style="font-size:1.5rem; margin-bottom:18px;">Inquiries</h1>
+      <table><thead><tr><th>Provider</th><th>From</th><th>Type</th><th>Status</th><th>When</th></tr></thead><tbody id="inquiriesTable"></tbody></table>
+    </div>
+
+    <div id="panel-users" class="admin-panel">
+      <h1 style="font-size:1.5rem; margin-bottom:18px;">Customers</h1>
+      <table><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Deletion requested</th><th>Actions</th></tr></thead><tbody id="usersTable"></tbody></table>
+    </div>
+
+    <div id="panel-content" class="admin-panel">
+      <h1 style="font-size:1.5rem; margin-bottom:18px;">Content</h1>
+      <h3 style="font-size:1.05rem; margin-bottom:10px;">FAQs</h3>
+      <table style="margin-bottom:16px;"><tbody id="faqsTable"></tbody></table>
+      <form id="addFaqForm" style="display:flex; gap:8px; margin-bottom:32px;">
+        <input type="text" id="faqQuestion" placeholder="Question" style="flex:1; padding:9px; border:1px solid var(--line); border-radius:4px;">
+        <input type="text" id="faqAnswer" placeholder="Answer" style="flex:1; padding:9px; border:1px solid var(--line); border-radius:4px;">
+        <button class="btn btn-outline btn-sm">Add</button>
+      </form>
+
+      <h3 style="font-size:1.05rem; margin-bottom:10px;">Site announcement banner</h3>
+      <form id="announcementForm" style="display:flex; gap:8px;">
+        <input type="text" id="announcementText" placeholder="e.g. Now serving Mombasa!" style="flex:1; padding:9px; border:1px solid var(--line); border-radius:4px;">
+        <button class="btn btn-outline btn-sm">Post</button>
+      </form>
+    </div>
+
+  </main>
+</div>
+
+<!-- ---------- Provider add/edit modal ---------- -->
+<div class="modal-backdrop" id="providerModalBackdrop">
+  <div class="modal">
+    <h3 style="margin-bottom:16px;" id="providerModalTitle">Add provider</h3>
+    <form id="providerForm">
+      <input type="hidden" id="providerId">
+      <div class="field"><label>Business/provider name</label><input type="text" id="pName" required></div>
+      <div class="field"><label>Category</label><select id="pCategory" required></select></div>
+      <div class="field"><label>Bio / description</label><textarea id="pBio"></textarea></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="field"><label>Town</label><input type="text" id="pTown" required></div>
+        <div class="field"><label>Estate (optional)</label><input type="text" id="pEstate"></div>
+      </div>
+      <div class="field"><label>Service area (optional)</label><input type="text" id="pServiceArea" placeholder="e.g. Nairobi &amp; environs"></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="field"><label>Phone (2547XXXXXXXX)</label><input type="text" id="pPhone" required></div>
+        <div class="field"><label>WhatsApp (optional)</label><input type="text" id="pWhatsapp"></div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="field"><label>Min price (KSh)</label><input type="number" id="pPriceMin"></div>
+        <div class="field"><label>Max price (KSh)</label><input type="number" id="pPriceMax"></div>
+      </div>
+      <div class="field">
+        <label>Days available</label>
+        <div class="chip-row" id="dayPicker">
+          ${''}
+        </div>
+      </div>
+      <div class="field"><label>Hours note (optional)</label><input type="text" id="pHoursNote" placeholder="e.g. 8am–6pm, closed Sundays"></div>
+      <div class="field"><label>Photo</label><input type="file" id="pImage" accept="image/*"></div>
+      <div style="display:flex; gap:16px; margin-bottom:18px;">
+        <label style="display:flex; gap:6px; align-items:center;"><input type="checkbox" id="pVerified" style="width:auto;"> Verified</label>
+        <label style="display:flex; gap:6px; align-items:center;"><input type="checkbox" id="pFeatured" style="width:auto;"> Featured</label>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-ghost" id="closeProviderModal">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ---------- Category modal ---------- -->
+<div class="modal-backdrop" id="categoryModalBackdrop">
+  <div class="modal" style="max-width:400px;">
+    <h3 style="margin-bottom:16px;">Add category</h3>
+    <form id="categoryForm">
+      <div class="field"><label>Name</label><input type="text" id="catName" required></div>
+      <div class="field"><label>Icon</label>
+        <select id="catIcon">
+          ${''}
+        </select>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button type="submit" class="btn btn-primary">Add</button>
+        <button type="button" class="btn btn-ghost" id="closeCategoryModal">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="assets/js/api.js"></script>
+<script>
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+document.getElementById('dayPicker').innerHTML = DAYS.map(d => `<span class="chip" data-day="${d}">${d}</span>`).join('');
+document.querySelectorAll('#dayPicker .chip').forEach(c => c.addEventListener('click', () => c.classList.toggle('active')));
+
+const ICON_NAMES = Object.keys(ICONS);
+document.getElementById('catIcon').innerHTML = ICON_NAMES.map(n => `<option value="${n}">${n}</option>`).join('');
+
+// ---------- Login ----------
+function showApp() {
+  document.getElementById('loginGate').style.display = 'none';
+  document.getElementById('adminShell').style.display = 'grid';
+  loadOverview();
+}
+if (AdminAuth.isLoggedIn()) showApp();
+
+document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    const data = await apiRequest('/admin/login', {
+      method: 'POST',
+      body: { email: document.getElementById('adminEmail').value, password: document.getElementById('adminPassword').value }
+    });
+    AdminAuth.setToken(data.token);
+    showApp();
+  } catch (err) { toast(err.message, 'error'); }
+});
+document.getElementById('adminLogoutBtn').addEventListener('click', () => {
+  AdminAuth.logout();
+  window.location.reload();
+});
+
+// ---------- Tab navigation ----------
+document.querySelectorAll('.nav-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(`panel-${btn.dataset.panel}`).classList.add('active');
+    const loaders = {
+      overview: loadOverview, providers: loadProviders, categories: loadCategories,
+      reviews: loadReviews, reports: loadReports, inquiries: loadInquiries,
+      users: loadUsers, content: loadContent
+    };
+    loaders[btn.dataset.panel]?.();
+  });
+});
+
+// ---------- Overview ----------
+async function loadOverview() {
+  try {
+    const s = await apiRequest('/admin/stats', { admin: true });
+    document.getElementById('statGrid').innerHTML = `
+      <div class="stat-box"><div class="num">${s.capacity.providers}</div><div class="lbl">Providers listed</div></div>
+      <div class="stat-box"><div class="num">${s.totalCustomers}</div><div class="lbl">Registered customers</div></div>
+      <div class="stat-box"><div class="num">${s.inquiriesThisWeek}</div><div class="lbl">Inquiries this week</div></div>
+      <div class="stat-box"><div class="num">${s.featuredCount}</div><div class="lbl">Featured listings</div></div>
+      <div class="stat-box"><div class="num">${s.pendingReports}</div><div class="lbl">Open reports</div></div>
+      <div class="stat-box"><div class="num">${s.flaggedReviews}</div><div class="lbl">Flagged reviews</div></div>
+      <div class="stat-box"><div class="num">${s.deletionRequests}</div><div class="lbl">Deletion requests</div></div>
+    `;
+    document.getElementById('topCatTable').innerHTML = s.topCategories.map(c => `<tr><td>${escapeHtml(c.name)}</td><td>${c.count} providers</td></tr>`).join('');
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+// ---------- Providers ----------
+let categoryCache = [];
+async function loadProviders() {
+  const status = document.getElementById('providerStatusFilter').value;
+  try {
+    const rows = await apiRequest(`/admin/providers${status ? `?status=${status}` : ''}`, { admin: true });
+    document.getElementById('providersTable').innerHTML = rows.map(p => `
+      <tr>
+        <td>${escapeHtml(p.name)}</td>
+        <td>${escapeHtml(p.category_name)}</td>
+        <td>${escapeHtml(p.location_town)}</td>
+        <td>${p.rating_count > 0 ? p.rating_avg.toFixed(1) : '—'}</td>
+        <td>${p.status}</td>
+        <td>${p.featured ? 'Featured' : 'Free'}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm edit-provider" data-id="${p.id}">Edit</button>
+          <button class="btn btn-ghost btn-sm toggle-feature" data-id="${p.id}" data-featured="${p.featured}">${p.featured ? 'Unfeature' : 'Feature'}</button>
+          <button class="btn btn-danger btn-sm remove-provider" data-id="${p.id}">Remove</button>
+        </td>
+      </tr>
+    `).join('');
+    wireProviderRowActions(rows);
+  } catch (err) { toast(err.message, 'error'); }
+}
+document.getElementById('providerStatusFilter').addEventListener('change', loadProviders);
+
+function wireProviderRowActions(rows) {
+  document.querySelectorAll('.edit-provider').forEach(btn => btn.addEventListener('click', () => openProviderModal(rows.find(r => r.id === btn.dataset.id))));
+  document.querySelectorAll('.toggle-feature').forEach(btn => btn.addEventListener('click', async () => {
+    try {
+      await apiRequest(`/admin/providers/${btn.dataset.id}`, { admin: true, method: 'PATCH', body: { featured: btn.dataset.featured === '0' } });
+      toast('Updated', 'success'); loadProviders();
+    } catch (err) { toast(err.message, 'error'); }
+  }));
+  document.querySelectorAll('.remove-provider').forEach(btn => btn.addEventListener('click', async () => {
+    if (!confirm('Remove this listing?')) return;
+    try { await apiRequest(`/admin/providers/${btn.dataset.id}`, { admin: true, method: 'DELETE' }); toast('Removed', 'success'); loadProviders(); }
+    catch (err) { toast(err.message, 'error'); }
+  }));
+}
+
+async function openProviderModal(provider) {
+  if (!categoryCache.length) categoryCache = await apiRequest('/categories');
+  const flatCats = categoryCache.flatMap(c => [c, ...c.subcategories]);
+  document.getElementById('pCategory').innerHTML = flatCats.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+
+  document.getElementById('providerModalTitle').textContent = provider ? 'Edit provider' : 'Add provider';
+  document.getElementById('providerId').value = provider?.id || '';
+  document.getElementById('pName').value = provider?.name || '';
+  document.getElementById('pCategory').value = provider?.category_id || '';
+  document.getElementById('pBio').value = provider?.bio || '';
+  document.getElementById('pTown').value = provider?.location_town || '';
+  document.getElementById('pEstate').value = provider?.location_estate || '';
+  document.getElementById('pServiceArea').value = provider?.service_area || '';
+  document.getElementById('pPhone').value = provider?.phone || '';
+  document.getElementById('pWhatsapp').value = provider?.whatsapp || '';
+  document.getElementById('pPriceMin').value = provider?.price_min || '';
+  document.getElementById('pPriceMax').value = provider?.price_max || '';
+  document.getElementById('pHoursNote').value = provider?.hours_note || '';
+  document.getElementById('pVerified').checked = !!provider?.verified;
+  document.getElementById('pFeatured').checked = !!provider?.featured;
+
+  const days = provider ? (provider.days_available || []) : [];
+  document.querySelectorAll('#dayPicker .chip').forEach(c => c.classList.toggle('active', days.includes(c.dataset.day)));
+
+  document.getElementById('providerModalBackdrop').classList.add('open');
+}
+document.getElementById('addProviderBtn').addEventListener('click', () => openProviderModal(null));
+document.getElementById('closeProviderModal').addEventListener('click', () => document.getElementById('providerModalBackdrop').classList.remove('open'));
+
+document.getElementById('providerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('providerId').value;
+  const selectedDays = [...document.querySelectorAll('#dayPicker .chip.active')].map(c => c.dataset.day);
+
+  const formData = new FormData();
+  formData.append('name', document.getElementById('pName').value);
+  formData.append('categoryId', document.getElementById('pCategory').value);
+  formData.append('bio', document.getElementById('pBio').value);
+  formData.append('locationTown', document.getElementById('pTown').value);
+  formData.append('locationEstate', document.getElementById('pEstate').value);
+  formData.append('serviceArea', document.getElementById('pServiceArea').value);
+  formData.append('phone', document.getElementById('pPhone').value);
+  formData.append('whatsapp', document.getElementById('pWhatsapp').value);
+  formData.append('priceMin', document.getElementById('pPriceMin').value);
+  formData.append('priceMax', document.getElementById('pPriceMax').value);
+  formData.append('hoursNote', document.getElementById('pHoursNote').value);
+  formData.append('daysAvailable', JSON.stringify(selectedDays));
+  formData.append('verified', document.getElementById('pVerified').checked ? '1' : '');
+  formData.append('featured', document.getElementById('pFeatured').checked ? '1' : '');
+  const imageFile = document.getElementById('pImage').files[0];
+  if (imageFile) formData.append('image', imageFile);
+
+  try {
+    if (id) {
+      await apiRequest(`/admin/providers/${id}`, { admin: true, method: 'PATCH', body: formData, isForm: true });
+      toast('Provider updated', 'success');
+    } else {
+      await apiRequest('/admin/providers', { admin: true, method: 'POST', body: formData, isForm: true });
+      toast('Provider added', 'success');
+    }
+    document.getElementById('providerModalBackdrop').classList.remove('open');
+    loadProviders();
+  } catch (err) { toast(err.message, 'error'); }
+});
+
+// ---------- Categories ----------
+async function loadCategories() {
+  try {
+    const cats = await apiRequest('/categories');
+    categoryCache = cats;
+    const flat = cats.flatMap(c => [c, ...c.subcategories]);
+    document.getElementById('categoriesTable').innerHTML = flat.map(c => `
+      <tr>
+        <td>${c.parent_id ? '— ' : ''}${escapeHtml(c.name)}</td>
+        <td class="muted">${c.slug}</td>
+        <td><button class="btn btn-danger btn-sm del-cat" data-id="${c.id}">Delete</button></td>
+      </tr>
+    `).join('');
+    document.querySelectorAll('.del-cat').forEach(btn => btn.addEventListener('click', async () => {
+      if (!confirm('Delete this category?')) return;
+      try { await apiRequest(`/admin/categories/${btn.dataset.id}`, { admin: true, method: 'DELETE' }); loadCategories(); }
+      catch (err) { toast(err.message, 'error'); }
+    }));
+  } catch (err) { toast(err.message, 'error'); }
+}
+document.getElementById('addCategoryBtn').addEventListener('click', () => document.getElementById('categoryModalBackdrop').classList.add('open'));
+document.getElementById('closeCategoryModal').addEventListener('click', () => document.getElementById('categoryModalBackdrop').classList.remove('open'));
+document.getElementById('categoryForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    await apiRequest('/admin/categories', { admin: true, method: 'POST', body: { name: document.getElementById('catName').value, icon: document.getElementById('catIcon').value } });
+    toast('Category added', 'success');
+    document.getElementById('categoryModalBackdrop').classList.remove('open');
+    document.getElementById('categoryForm').reset();
+    loadCategories();
+  } catch (err) { toast(err.message, 'error'); }
+});
+
+// ---------- Reviews ----------
+async function loadReviews() {
+  try {
+    const rows = await apiRequest('/admin/reviews', { admin: true });
+    document.getElementById('reviewsTable').innerHTML = rows.map(r => `
+      <tr>
+        <td>${escapeHtml(r.provider_name)}</td>
+        <td>${escapeHtml(r.reviewer_name)}</td>
+        <td>${r.rating} ★</td>
+        <td>${r.status}</td>
+        <td>
+          ${r.status !== 'published' ? `<button class="btn btn-ghost btn-sm review-action" data-id="${r.id}" data-status="published">Publish</button>` : ''}
+          ${r.status !== 'removed' ? `<button class="btn btn-danger btn-sm review-action" data-id="${r.id}" data-status="removed">Remove</button>` : ''}
+          <button class="btn btn-ghost btn-sm respond-review" data-id="${r.id}">Respond</button>
+        </td>
+      </tr>
+    `).join('');
+    document.querySelectorAll('.review-action').forEach(btn => btn.addEventListener('click', async () => {
+      try { await apiRequest(`/admin/reviews/${btn.dataset.id}`, { admin: true, method: 'PATCH', body: { status: btn.dataset.status } }); loadReviews(); }
+      catch (err) { toast(err.message, 'error'); }
+    }));
+    document.querySelectorAll('.respond-review').forEach(btn => btn.addEventListener('click', async () => {
+      const response = prompt('Write a response on behalf of the provider:');
+      if (!response) return;
+      try { await apiRequest(`/admin/reviews/${btn.dataset.id}/response`, { admin: true, method: 'POST', body: { response } }); toast('Response posted', 'success'); }
+      catch (err) { toast(err.message, 'error'); }
+    }));
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+// ---------- Reports ----------
+async function loadReports() {
+  try {
+    const rows = await apiRequest('/admin/reports', { admin: true });
+    document.getElementById('reportsTable').innerHTML = rows.map(r => `
+      <tr>
+        <td>${r.target_type}</td>
+        <td>${escapeHtml(r.reason)}</td>
+        <td>${r.status}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm report-action" data-id="${r.id}" data-status="reviewed">Mark reviewed</button>
+          <button class="btn btn-ghost btn-sm report-action" data-id="${r.id}" data-status="dismissed">Dismiss</button>
+        </td>
+      </tr>
+    `).join('');
+    document.querySelectorAll('.report-action').forEach(btn => btn.addEventListener('click', async () => {
+      try { await apiRequest(`/admin/reports/${btn.dataset.id}`, { admin: true, method: 'PATCH', body: { status: btn.dataset.status } }); loadReports(); }
+      catch (err) { toast(err.message, 'error'); }
+    }));
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+// ---------- Inquiries ----------
+async function loadInquiries() {
+  try {
+    const rows = await apiRequest('/admin/inquiries', { admin: true });
+    document.getElementById('inquiriesTable').innerHTML = rows.map(i => `
+      <tr>
+        <td>${escapeHtml(i.provider_name)}</td>
+        <td>${escapeHtml(i.guest_name || 'Registered user')}</td>
+        <td>${i.type.replace('_',' ')}</td>
+        <td>${i.status}</td>
+        <td>${new Date(i.created_at).toLocaleDateString()}</td>
+      </tr>
+    `).join('');
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+// ---------- Users ----------
+async function loadUsers() {
+  try {
+    const rows = await apiRequest('/admin/users', { admin: true });
+    document.getElementById('usersTable').innerHTML = rows.map(u => `
+      <tr>
+        <td>${escapeHtml(u.name)}</td>
+        <td>${escapeHtml(u.email)}</td>
+        <td>${u.status}</td>
+        <td>${u.deletion_requested ? 'Yes' : ''}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm user-status" data-id="${u.id}" data-status="${u.status === 'active' ? 'suspended' : 'active'}">${u.status === 'active' ? 'Suspend' : 'Reactivate'}</button>
+          ${u.deletion_requested ? `<button class="btn btn-danger btn-sm del-user" data-id="${u.id}">Delete now</button>` : ''}
+        </td>
+      </tr>
+    `).join('');
+    document.querySelectorAll('.user-status').forEach(btn => btn.addEventListener('click', async () => {
+      try { await apiRequest(`/admin/users/${btn.dataset.id}`, { admin: true, method: 'PATCH', body: { status: btn.dataset.status } }); loadUsers(); }
+      catch (err) { toast(err.message, 'error'); }
+    }));
+    document.querySelectorAll('.del-user').forEach(btn => btn.addEventListener('click', async () => {
+      if (!confirm('Permanently delete this account?')) return;
+      try { await apiRequest(`/admin/users/${btn.dataset.id}`, { admin: true, method: 'DELETE' }); loadUsers(); }
+      catch (err) { toast(err.message, 'error'); }
+    }));
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+// ---------- Content ----------
+async function loadContent() {
+  try {
+    const faqs = await apiRequest('/content/faqs');
+    document.getElementById('faqsTable').innerHTML = faqs.map(f => `
+      <tr><td>${escapeHtml(f.question)}</td><td><button class="btn btn-danger btn-sm del-faq" data-id="${f.id}">Delete</button></td></tr>
+    `).join('');
+    document.querySelectorAll('.del-faq').forEach(btn => btn.addEventListener('click', async () => {
+      try { await apiRequest(`/admin/faqs/${btn.dataset.id}`, { admin: true, method: 'DELETE' }); loadContent(); }
+      catch (err) { toast(err.message, 'error'); }
+    }));
+  } catch (err) { toast(err.message, 'error'); }
+}
+document.getElementById('addFaqForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    await apiRequest('/admin/faqs', { admin: true, method: 'POST', body: { question: document.getElementById('faqQuestion').value, answer: document.getElementById('faqAnswer').value } });
+    e.target.reset(); loadContent(); toast('FAQ added', 'success');
+  } catch (err) { toast(err.message, 'error'); }
+});
+document.getElementById('announcementForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    await apiRequest('/admin/announcements', { admin: true, method: 'POST', body: { text: document.getElementById('announcementText').value } });
+    e.target.reset(); toast('Announcement posted', 'success');
+  } catch (err) { toast(err.message, 'error'); }
+});
+</script>
+
+</body>
+</html>

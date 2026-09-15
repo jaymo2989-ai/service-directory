@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in | Karibu Directory</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <svg viewBox="0 0 26 26" fill="none" stroke="#0F5C4A" stroke-width="1.8"><circle cx="13" cy="13" r="10"/><path d="M9 13.2l2.6 2.6L17.5 10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Karibu Directory
+    </a>
+    <nav class="nav-links" id="navLinks" style="display:flex; position:static; border:none; padding:0; flex-direction:row;">
+      <a href="search.html">Browse all</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div class="form-card">
+      <h1 style="font-size:1.5rem; margin-bottom:6px;">Welcome back</h1>
+      <p class="muted" style="margin-bottom:24px;">Log in to save providers and manage your inquiries.</p>
+
+      <form id="loginForm">
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Log in</button>
+      </form>
+
+      <p class="muted" style="margin-top:18px; text-align:center;">
+        <a href="forgot-password.html">Forgot password?</a>
+      </p>
+      <p class="muted" style="margin-top:8px; text-align:center;">
+        No account? <a href="register.html">Sign up</a>
+      </p>
+    </div>
+  </section>
+</main>
+
+<script src="assets/js/api.js"></script>
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Logging in…';
+  try {
+    const data = await apiRequest('/auth/login', {
+      method: 'POST',
+      body: { email: document.getElementById('email').value, password: document.getElementById('password').value }
+    });
+    Auth.setToken(data.token);
+    Auth.setUser(data.user);
+    window.location.href = 'dashboard.html';
+  } catch (err) {
+    toast(err.message, 'error');
+    btn.disabled = false; btn.textContent = 'Log in';
+  }
+});
+</script>
+
+</body>
+</html>

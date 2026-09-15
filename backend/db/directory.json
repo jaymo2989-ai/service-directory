@@ -1,0 +1,238 @@
+{
+  "users": [
+    {
+      "id": "46172df8-f820-4fa9-921f-990472f0f5e8",
+      "name": "income bridge",
+      "email": "incomebridge@gmail.com",
+      "password_hash": "$2a$12$jahcvGKi/BYGd82UVzFaI.LAHgaUJN0sWzCsh7MRqN2KpekKyBbAO",
+      "email_verified": false,
+      "verification_token": "d9ee1dbd47b58121b1c4bfa13795bfb429de083829841ce3",
+      "reset_token": null,
+      "reset_token_expires": null,
+      "notification_prefs": {
+        "email_updates": true
+      },
+      "deletion_requested": false,
+      "status": "active",
+      "created_at": "2026-09-15T23:36:52.862Z"
+    }
+  ],
+  "admins": [
+    {
+      "id": "a096c1a5-f42d-4644-a13b-b5fd9c23a020",
+      "email": "incomebridge8@gmail.com",
+      "password_hash": "$2a$12$TYSlNmUZKy8xP.p.v2qjyewBd.SlnJvMMdDc9VaZi0hsZfFelSHFq",
+      "created_at": "2026-09-15T23:14:08.647Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": "40ddf9b9-6286-4a46-a951-85012d239d3c",
+      "name": "Home Repairs & Maintenance",
+      "slug": "home-repairs",
+      "icon": "wrench",
+      "parent_id": null,
+      "sort_order": 0,
+      "created_at": "2026-09-15T23:14:08.036Z"
+    },
+    {
+      "id": "36e62d2a-b894-4a10-934d-3f4e1950e33c",
+      "name": "Plumbing",
+      "slug": "plumbing",
+      "icon": "droplet",
+      "parent_id": null,
+      "sort_order": 1,
+      "created_at": "2026-09-15T23:14:08.036Z"
+    },
+    {
+      "id": "c4f907e6-7e13-4c63-bab7-86a3b9077c73",
+      "name": "Electrical Services",
+      "slug": "electrical",
+      "icon": "bolt",
+      "parent_id": null,
+      "sort_order": 2,
+      "created_at": "2026-09-15T23:14:08.036Z"
+    },
+    {
+      "id": "7f826c60-5559-4ee9-9c06-8d9f22fbddca",
+      "name": "Cleaning & Laundry",
+      "slug": "cleaning-laundry",
+      "icon": "sparkles",
+      "parent_id": null,
+      "sort_order": 3,
+      "created_at": "2026-09-15T23:14:08.036Z"
+    },
+    {
+      "id": "1f6fa6f0-f54a-4689-a0a5-86eeecc10911",
+      "name": "Construction & Renovation",
+      "slug": "construction",
+      "icon": "hammer",
+      "parent_id": null,
+      "sort_order": 4,
+      "created_at": "2026-09-15T23:14:08.036Z"
+    },
+    {
+      "id": "c5ed5705-4354-4fb3-b9bc-ad0053d9d581",
+      "name": "Painting & Decoration",
+      "slug": "painting",
+      "icon": "paint",
+      "parent_id": null,
+      "sort_order": 5,
+      "created_at": "2026-09-15T23:14:08.036Z"
+    },
+    {
+      "id": "88580c9d-0c38-4b6b-a872-3f27e8c5697f",
+      "name": "Carpentry & Furniture",
+      "slug": "carpentry",
+      "icon": "saw",
+      "parent_id": null,
+      "sort_order": 6,
+      "created_at": "2026-09-15T23:14:08.036Z"
+    },
+    {
+      "id": "3b6b0dd6-a6c8-41de-84d4-7aaa8ba970e0",
+      "name": "Moving & Transportation",
+      "slug": "moving",
+      "icon": "truck",
+      "parent_id": null,
+      "sort_order": 7,
+      "created_at": "2026-09-15T23:14:08.036Z"
+    },
+    {
+      "id": "dca02c88-0a31-47b0-b282-ec0f7b49b097",
+      "name": "Beauty & Personal Care",
+      "slug": "beauty",
+      "icon": "scissors",
+      "parent_id": null,
+      "sort_order": 8,
+      "created_at": "2026-09-15T23:14:08.036Z"
+    },
+    {
+      "id": "521e751f-8284-4aa7-bdf1-7a7ceef535aa",
+      "name": "Photography & Videography",
+      "slug": "photography",
+      "icon": "camera",
+      "parent_id": null,
+      "sort_order": 9,
+      "created_at": "2026-09-15T23:14:08.036Z"
+    },
+    {
+      "id": "a3de7f4f-b3b7-4d79-862f-d9c86a6f2026",
+      "name": "Computer & IT Support",
+      "slug": "it-support",
+      "icon": "computer",
+      "parent_id": null,
+      "sort_order": 10,
+      "created_at": "2026-09-15T23:14:08.036Z"
+    },
+    {
+      "id": "d460e1c4-525e-4e3c-83ce-7002c9067f24",
+      "name": "Graphic Design & Digital",
+      "slug": "graphic-design",
+      "icon": "pen",
+      "parent_id": null,
+      "sort_order": 11,
+      "created_at": "2026-09-15T23:14:08.036Z"
+    },
+    {
+      "id": "22f516f7-333f-49fe-b24a-b51587980f29",
+      "name": "Tutoring & Education",
+      "slug": "tutoring",
+      "icon": "book",
+      "parent_id": null,
+      "sort_order": 12,
+      "created_at": "2026-09-15T23:14:08.036Z"
+    },
+    {
+      "id": "8d88c6cd-baba-4ca4-8c3c-d86c6549b1f7",
+      "name": "Events & Catering",
+      "slug": "events-catering",
+      "icon": "utensils",
+      "parent_id": null,
+      "sort_order": 13,
+      "created_at": "2026-09-15T23:14:08.036Z"
+    },
+    {
+      "id": "d58cd515-bed9-4eea-afb4-6dc67257c1f4",
+      "name": "Gardening & Landscaping",
+      "slug": "gardening",
+      "icon": "leaf",
+      "parent_id": null,
+      "sort_order": 14,
+      "created_at": "2026-09-15T23:14:08.036Z"
+    },
+    {
+      "id": "3f85c840-dfe2-4b80-b961-d39cf70a53a5",
+      "name": "Automotive Services",
+      "slug": "automotive",
+      "icon": "car",
+      "parent_id": null,
+      "sort_order": 15,
+      "created_at": "2026-09-15T23:14:08.036Z"
+    },
+    {
+      "id": "54fbcea4-738c-4b5c-a7a0-8625a7a28c24",
+      "name": "Professional & Business Services",
+      "slug": "professional-services",
+      "icon": "briefcase",
+      "parent_id": null,
+      "sort_order": 16,
+      "created_at": "2026-09-15T23:14:08.036Z"
+    }
+  ],
+  "providers": [
+    {
+      "id": "5da1d720-7304-41e1-bd77-dff8886fd2be",
+      "name": "jay edits",
+      "category_id": "d460e1c4-525e-4e3c-83ce-7002c9067f24",
+      "bio": "skilled video editor",
+      "location_town": "juja",
+      "location_estate": "shalom",
+      "service_area": "thika",
+      "phone": "0714283422",
+      "whatsapp": null,
+      "email": null,
+      "price_min": 150,
+      "price_max": 1976,
+      "days_available": [
+        "Mon",
+        "Tue",
+        "Wed"
+      ],
+      "hours_note": "",
+      "image_url": null,
+      "verified": true,
+      "featured": false,
+      "status": "approved",
+      "rating_avg": 0,
+      "rating_count": 0,
+      "created_at": "2026-09-15T23:20:03.121Z",
+      "updated_at": "2026-09-15T23:20:03.121Z"
+    }
+  ],
+  "reviews": [],
+  "favorites": [],
+  "inquiries": [],
+  "reports": [],
+  "faqs": [
+    {
+      "id": "460873bf-6555-4d6c-b46d-85ed1e78e2c4",
+      "question": "How are providers vetted?",
+      "answer": "Every provider is personally reviewed and approved by the platform owner before appearing on the site — nobody can list themselves.",
+      "sort_order": 0
+    },
+    {
+      "id": "ab9acf83-62c4-47f6-87e8-d486ab2df292",
+      "question": "Is it free to search for a provider?",
+      "answer": "Yes, browsing and contacting providers is completely free for customers.",
+      "sort_order": 1
+    },
+    {
+      "id": "3895a6e8-9250-4ff3-a014-074e627d5f1c",
+      "question": "How do I get listed as a provider?",
+      "answer": "Contact the owner directly using the details in the footer — listings are added after a short conversation and a one-time or monthly fee.",
+      "sort_order": 2
+    }
+  ],
+  "announcements": []
+}

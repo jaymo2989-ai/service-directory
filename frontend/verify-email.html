@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verify your email | Karibu Directory</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <svg viewBox="0 0 26 26" fill="none" stroke="#0F5C4A" stroke-width="1.8"><circle cx="13" cy="13" r="10"/><path d="M9 13.2l2.6 2.6L17.5 10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Karibu Directory
+    </a>
+    <nav class="nav-links" id="navLinks" style="display:flex; position:static; border:none; padding:0; flex-direction:row;">
+      <a href="search.html">Browse all</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section style="text-align:center;">
+    <div class="form-card" id="statusCard">
+      <div class="spinner"></div>
+      <p class="muted">Verifying your email…</p>
+    </div>
+  </section>
+</main>
+
+<script src="assets/js/api.js"></script>
+<script>
+const token = new URLSearchParams(window.location.search).get('token');
+const card = document.getElementById('statusCard');
+
+(async () => {
+  if (!token) {
+    card.innerHTML = `<h1 style="font-size:1.3rem;">Invalid link</h1><p class="muted" style="margin-top:8px;">This verification link is missing its token.</p>`;
+    return;
+  }
+  try {
+    await apiRequest('/auth/verify-email', { method: 'POST', body: { token } });
+    card.innerHTML = `<h1 style="font-size:1.3rem;">Email verified ✓</h1><p class="muted" style="margin-top:8px;">You're all set.</p><a href="dashboard.html" class="btn btn-primary" style="margin-top:18px;">Go to dashboard</a>`;
+  } catch (err) {
+    card.innerHTML = `<h1 style="font-size:1.3rem;">Couldn't verify</h1><p class="muted" style="margin-top:8px;">${err.message}</p>`;
+  }
+})();
+</script>
+
+</body>
+</html>

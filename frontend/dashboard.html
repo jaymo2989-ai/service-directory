@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your account | Karibu Directory</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <svg viewBox="0 0 26 26" fill="none" stroke="#0F5C4A" stroke-width="1.8"><circle cx="13" cy="13" r="10"/><path d="M9 13.2l2.6 2.6L17.5 10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Karibu Directory
+    </a>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <nav class="nav-links" id="navLinks">
+      <a href="search.html">Browse all</a>
+      <div class="nav-actions" id="navAuthArea"></div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap" style="padding:40px 24px;" id="gate">
+
+    <h1 style="font-size:1.7rem; margin-bottom:24px;">Your account</h1>
+
+    <div style="display:flex; gap:10px; border-bottom:1px solid var(--line); margin-bottom:28px; flex-wrap:wrap;">
+      <button class="tab-btn btn-ghost btn-sm" data-tab="profile" style="border-bottom:2px solid var(--emerald); color:var(--ink);">Profile</button>
+      <button class="tab-btn btn-ghost btn-sm" data-tab="favorites">Saved providers</button>
+      <button class="tab-btn btn-ghost btn-sm" data-tab="inquiries">My inquiries</button>
+    </div>
+
+    <div id="tab-profile" class="tab-panel">
+      <div class="form-card" style="max-width:480px; margin:0;">
+        <form id="profileForm">
+          <div class="field">
+            <label>Name</label>
+            <input type="text" id="profileName">
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="profileEmail" disabled style="background:var(--paper-2);">
+          </div>
+          <div class="field" style="display:flex; align-items:center; gap:8px;">
+            <input type="checkbox" id="emailUpdates" style="width:auto;">
+            <label style="margin:0;">Email me updates about my inquiries</label>
+          </div>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </form>
+
+        <hr style="border:none; border-top:1px solid var(--line); margin:26px 0;">
+        <p class="muted" style="margin-bottom:10px;">Want to leave the platform?</p>
+        <button class="btn btn-danger btn-sm" id="deleteAccountBtn">Request account deletion</button>
+      </div>
+    </div>
+
+    <div id="tab-favorites" class="tab-panel" style="display:none;">
+      <div class="card-grid" id="favoritesGrid"><div class="spinner"></div></div>
+    </div>
+
+    <div id="tab-inquiries" class="tab-panel" style="display:none;">
+      <div id="inquiriesList"><div class="spinner"></div></div>
+    </div>
+
+  </div>
+</main>
+
+<script src="assets/js/api.js"></script>
+<script>
+if (!Auth.isLoggedIn()) window.location.href = 'login.html';
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => { b.style.borderBottom = 'none'; b.style.color = 'var(--ink-soft)'; });
+    btn.style.borderBottom = '2px solid var(--emerald)';
+    btn.style.color = 'var(--ink)';
+    document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+    document.getElementById(`tab-${btn.dataset.tab}`).style.display = 'block';
+    if (btn.dataset.tab === 'favorites') loadFavorites();
+    if (btn.dataset.tab === 'inquiries') loadInquiries();
+  });
+});
+
+async function loadProfile() {
+  try {
+    const me = await apiRequest('/auth/me');
+    document.getElementById('profileName').value = me.name;
+    document.getElementById('profileEmail').value = me.email;
+    const prefs = me.notification_prefs || {};
+    document.getElementById('emailUpdates').checked = prefs.email_updates !== false;
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    await apiRequest('/auth/me', {
+      method: 'PATCH',
+      body: {
+        name: document.getElementById('profileName').value,
+        notificationPrefs: { email_updates: document.getElementById('emailUpdates').checked }
+      }
+    });
+    const user = Auth.getUser();
+    user.name = document.getElementById('profileName').value;
+    Auth.setUser(user);
+    toast('Profile updated', 'success');
+  } catch (err) { toast(err.message, 'error'); }
+});
+
+document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
+  if (!confirm('Request account deletion? An admin will process this — you can keep using your account until then.')) return;
+  try {
+    await apiRequest('/auth/me', { method: 'DELETE' });
+    toast('Deletion requested', 'success');
+  } catch (err) { toast(err.message, 'error'); }
+});
+
+function renderProviderCard(p) {
+  const img = p.image_url
+    ? `<img class="provider-avatar" src="${API_BASE.replace('/api','')}${p.image_url}" alt="">`
+    : `<div class="provider-avatar">${initials(p.name)}</div>`;
+  return `
+    <a href="provider.html?id=${p.id}" class="provider-card">
+      <div class="provider-card-top">
+        ${img}
+        <div><h3>${escapeHtml(p.name)}</h3><p class="provider-meta">${escapeHtml(p.category_name)} · ${escapeHtml(p.location_town)}</p></div>
+      </div>
+    </a>`;
+}
+
+async function loadFavorites() {
+  const el = document.getElementById('favoritesGrid');
+  el.innerHTML = '<div class="spinner"></div>';
+  try {
+    const rows = await apiRequest('/favorites');
+    el.innerHTML = rows.length
+      ? rows.map(renderProviderCard).join('')
+      : `<div class="empty-state" style="grid-column:1/-1;"><h4>No saved providers yet</h4><p>Tap the star on a listing to save it here.</p></div>`;
+  } catch (err) {
+    el.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+async function loadInquiries() {
+  const el = document.getElementById('inquiriesList');
+  el.innerHTML = '<div class="spinner"></div>';
+  try {
+    const rows = await apiRequest('/inquiries/mine');
+    if (!rows.length) {
+      el.innerHTML = `<div class="empty-state"><h4>No inquiries yet</h4><p>Providers you contact will show up here.</p></div>`;
+      return;
+    }
+    el.innerHTML = rows.map(i => `
+      <div class="provider-card" style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between;">
+          <a href="provider.html?id=${i.provider_id}" style="font-weight:600;">${escapeHtml(i.provider_name)}</a>
+          <span class="muted">${new Date(i.created_at).toLocaleDateString()}</span>
+        </div>
+        <p class="muted">${i.type.replace('_',' ')} · ${i.status}</p>
+        ${i.message ? `<p style="margin-top:6px;">${escapeHtml(i.message)}</p>` : ''}
+      </div>
+    `).join('');
+  } catch (err) {
+    el.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+loadProfile();
+</script>
+
+</body>
+</html>

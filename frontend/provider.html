@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Provider | Karibu Directory</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <svg viewBox="0 0 26 26" fill="none" stroke="#0F5C4A" stroke-width="1.8"><circle cx="13" cy="13" r="10"/><path d="M9 13.2l2.6 2.6L17.5 10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Karibu Directory
+    </a>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <nav class="nav-links" id="navLinks">
+      <a href="search.html">Browse all</a>
+      <div class="nav-actions" id="navAuthArea"></div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div id="content" class="wrap" style="padding:40px 24px;"><div class="spinner"></div></div>
+</main>
+
+<footer class="site">
+  <div class="wrap footer-bottom" style="border-top:none; padding-top:0;">
+    <span>© <span id="year"></span> Karibu Directory.</span>
+    <a href="index.html">Home</a>
+  </div>
+</footer>
+
+<script src="assets/js/api.js"></script>
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+const providerId = new URLSearchParams(window.location.search).get('id');
+const DAY_LABELS = { Mon:'Monday', Tue:'Tuesday', Wed:'Wednesday', Thu:'Thursday', Fri:'Friday', Sat:'Saturday', Sun:'Sunday' };
+
+async function load() {
+  const el = document.getElementById('content');
+  if (!providerId) { el.innerHTML = `<div class="empty-state"><h4>No provider specified</h4></div>`; return; }
+
+  try {
+    const p = await apiRequest(`/providers/${providerId}`);
+    document.getElementById('pageTitle').textContent = `${p.name} | Karibu Directory`;
+    const img = p.image_url
+      ? `<img src="${API_BASE.replace('/api','')}${p.image_url}" alt="${escapeHtml(p.name)}" style="width:110px; height:110px; border-radius:10px; object-fit:cover;">`
+      : `<div class="provider-avatar" style="width:110px; height:110px; font-size:2.2rem; border-radius:10px;">${initials(p.name)}</div>`;
+
+    el.innerHTML = `
+      <div style="display:grid; grid-template-columns:2fr 1fr; gap:40px; align-items:start;">
+        <div>
+          <div style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
+            ${img}
+            <div>
+              <p class="eyebrow">${escapeHtml(p.category_name)}</p>
+              <h1 style="font-size:1.8rem; margin-top:6px;">${escapeHtml(p.name)}</h1>
+              <p class="muted" style="margin-top:6px;">${escapeHtml(p.location_town)}${p.location_estate ? ', ' + escapeHtml(p.location_estate) : ''}${p.service_area ? ' · Serves ' + escapeHtml(p.service_area) : ''}</p>
+              <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+                ${p.verified ? `<span class="badge badge-verified">Verified</span>` : ''}
+                ${p.featured ? `<span class="badge badge-featured">Featured</span>` : ''}
+              </div>
+              <div class="rating" style="margin-top:10px;">
+                ${starIcon()}
+                <span>${p.rating_count > 0 ? `${p.rating_avg.toFixed(1)} average (${p.rating_count} review${p.rating_count === 1 ? '' : 's'})` : 'No reviews yet'}</span>
+              </div>
+            </div>
+          </div>
+
+          <p style="margin-top:28px; line-height:1.7;">${escapeHtml(p.bio || 'No description provided yet.')}</p>
+
+          <div style="margin-top:24px; display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:440px;">
+            <div>
+              <p class="muted" style="margin-bottom:4px;">Price range</p>
+              <p style="font-weight:600;">${formatKsh(p.price_min, p.price_max)}</p>
+            </div>
+            <div>
+              <p class="muted" style="margin-bottom:4px;">Available</p>
+              <p style="font-weight:600;">${(p.daysAvailable || []).map(d => DAY_LABELS[d] || d).join(', ') || 'Contact to confirm'}</p>
+            </div>
+          </div>
+          ${p.hours_note ? `<p class="muted" style="margin-top:8px;">${escapeHtml(p.hours_note)}</p>` : ''}
+
+          <!-- ---------- Reviews ---------- -->
+          <div style="margin-top:48px;">
+            <div class="section-head"><h2 style="font-size:1.4rem;">Reviews</h2></div>
+            <div id="reviewForm"></div>
+            <div id="reviewsList" style="display:flex; flex-direction:column; gap:18px; margin-top:20px;">
+              ${p.reviews.length ? p.reviews.map(renderReview).join('') : '<p class="muted">No reviews yet — be the first to leave one.</p>'}
+            </div>
+          </div>
+        </div>
+
+        <!-- ---------- Contact sidebar ---------- -->
+        <div class="form-card" style="max-width:none; position:sticky; top:90px;">
+          <h4 style="margin-bottom:16px;">Get in touch</h4>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <button class="btn btn-primary btn-block" id="callBtn">Call ${escapeHtml(p.phone)}</button>
+            ${p.whatsapp ? `<button class="btn btn-outline btn-block" id="whatsappBtn">Contact on WhatsApp</button>` : ''}
+            <button class="btn btn-ghost btn-block" id="favBtn">${p.isFavorited ? '★ Saved to favorites' : '☆ Save to favorites'}</button>
+          </div>
+
+          <hr style="border:none; border-top:1px solid var(--line); margin:22px 0;">
+
+          <h4 style="margin-bottom:14px;">Request a quote</h4>
+          <form id="quoteForm">
+            <div class="field" id="guestNameField" style="display:none;">
+              <label>Your name</label>
+              <input type="text" id="guestName">
+            </div>
+            <div class="field" id="guestPhoneField" style="display:none;">
+              <label>Your phone</label>
+              <input type="text" id="guestPhone" placeholder="2547XXXXXXXX">
+            </div>
+            <div class="field">
+              <label>What do you need?</label>
+              <textarea id="quoteMessage" placeholder="Briefly describe the job"></textarea>
+            </div>
+            <button type="submit" class="btn btn-sienna btn-block">Send request</button>
+          </form>
+
+          <p class="muted" style="margin-top:14px;"><a href="#" id="reportLink" style="color:var(--danger);">Report this listing</a></p>
+        </div>
+      </div>
+    `;
+
+    // Show guest fields if not logged in
+    if (!Auth.isLoggedIn()) {
+      document.getElementById('guestNameField').style.display = 'block';
+      document.getElementById('guestPhoneField').style.display = 'block';
+    }
+
+    wireActions(p);
+    renderReviewForm(p);
+  } catch (err) {
+    el.innerHTML = `<div class="empty-state"><h4>Provider not found</h4><p>${escapeHtml(err.message)}</p></div>`;
+  }
+}
+
+function renderReview(r) {
+  return `
+    <div style="border-bottom:1px solid var(--line); padding-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <strong>${escapeHtml(r.reviewer_name)}</strong>
+        <span class="rating">${starIcon()} ${r.rating}</span>
+      </div>
+      <p class="muted" style="margin:4px 0 8px;">
+        ${new Date(r.created_at).toLocaleDateString()} ${r.verified ? '· <span style="color:var(--emerald);">Verified customer</span>' : '· Unverified'}
+      </p>
+      <p>${escapeHtml(r.text || '')}</p>
+      ${r.provider_response ? `<div style="margin-top:10px; padding:12px 14px; background:var(--paper-2); border-radius:4px;"><strong style="font-size:0.85rem;">Response from provider:</strong><p style="margin-top:4px;">${escapeHtml(r.provider_response)}</p></div>` : ''}
+    </div>`;
+}
+
+function renderReviewForm(p) {
+  const el = document.getElementById('reviewForm');
+  if (!Auth.isLoggedIn()) {
+    el.innerHTML = `<p class="muted"><a href="login.html">Log in</a> to leave a review.</p>`;
+    return;
+  }
+  el.innerHTML = `
+    <form id="newReviewForm" style="background:var(--white); border:1px solid var(--line); border-radius:4px; padding:20px;">
+      <label class="muted" style="display:block; margin-bottom:8px;">Your rating</label>
+      <div id="starPicker" style="display:flex; gap:4px; margin-bottom:14px; cursor:pointer;">
+        ${[1,2,3,4,5].map(n => `<span data-star="${n}" style="width:22px; height:22px; color:var(--line);">${starIcon()}</span>`).join('')}
+      </div>
+      <textarea id="reviewText" placeholder="Share your experience (optional)" style="width:100%; padding:12px; border:1px solid var(--line); border-radius:4px; min-height:70px; font-family:inherit;"></textarea>
+      <button type="submit" class="btn btn-primary btn-sm" style="margin-top:12px;">Submit review</button>
+    </form>
+  `;
+
+  let selectedRating = 0;
+  document.querySelectorAll('#starPicker span').forEach(star => {
+    star.addEventListener('click', () => {
+      selectedRating = parseInt(star.dataset.star);
+      document.querySelectorAll('#starPicker span').forEach(s => {
+        s.style.color = parseInt(s.dataset.star) <= selectedRating ? 'var(--gold-star)' : 'var(--line)';
+      });
+    });
+  });
+
+  document.getElementById('newReviewForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!selectedRating) return toast('Please select a star rating', 'error');
+    try {
+      await apiRequest(`/providers/${providerId}/reviews`, {
+        method: 'POST',
+        body: { rating: selectedRating, text: document.getElementById('reviewText').value }
+      });
+      toast('Review submitted', 'success');
+      load();
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  });
+}
+
+function wireActions(p) {
+  document.getElementById('callBtn').addEventListener('click', async () => {
+    logClick('call_click');
+    window.location.href = `tel:${p.phone}`;
+  });
+
+  const waBtn = document.getElementById('whatsappBtn');
+  if (waBtn) {
+    waBtn.addEventListener('click', async () => {
+      const data = await logClick('whatsapp_click');
+      window.open(data?.whatsappUrl || `https://wa.me/${p.whatsapp}`, '_blank');
+    });
+  }
+
+  document.getElementById('favBtn').addEventListener('click', async () => {
+    if (!Auth.isLoggedIn()) { window.location.href = 'login.html'; return; }
+    try {
+      if (p.isFavorited) {
+        await apiRequest(`/favorites/${providerId}`, { method: 'DELETE' });
+        toast('Removed from favorites', 'success');
+      } else {
+        await apiRequest(`/favorites/${providerId}`, { method: 'POST' });
+        toast('Saved to favorites', 'success');
+      }
+      load();
+    } catch (err) { toast(err.message, 'error'); }
+  });
+
+  document.getElementById('quoteForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      const body = { type: 'quote_request', message: document.getElementById('quoteMessage').value };
+      if (!Auth.isLoggedIn()) {
+        body.guestName = document.getElementById('guestName').value;
+        body.guestPhone = document.getElementById('guestPhone').value;
+      }
+      await apiRequest(`/providers/${providerId}/inquiries`, { method: 'POST', body });
+      toast('Quote request sent!', 'success');
+      e.target.reset();
+    } catch (err) { toast(err.message, 'error'); }
+  });
+
+  document.getElementById('reportLink').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const reason = prompt('What seems wrong with this listing?');
+    if (!reason) return;
+    try {
+      await apiRequest('/reports', { method: 'POST', body: { targetType: 'provider', targetId: providerId, reason } });
+      toast('Thanks — report submitted.', 'success');
+    } catch (err) { toast(err.message, 'error'); }
+  });
+}
+
+async function logClick(type) {
+  try {
+    return await apiRequest(`/providers/${providerId}/inquiries`, { method: 'POST', body: { type } });
+  } catch { return null; }
+}
+
+load();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Browse providers | Karibu Directory</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <svg viewBox="0 0 26 26" fill="none" stroke="#0F5C4A" stroke-width="1.8"><circle cx="13" cy="13" r="10"/><path d="M9 13.2l2.6 2.6L17.5 10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Karibu Directory
+    </a>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <nav class="nav-links" id="navLinks">
+      <a href="search.html">Browse all</a>
+      <a href="index.html#how-it-works">How it works</a>
+      <div class="nav-actions" id="navAuthArea"></div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section style="padding-bottom:24px;">
+    <div class="wrap">
+      <form id="searchForm">
+        <div class="search-bar">
+          <input class="search-field" type="text" id="qInput" placeholder="Service or provider name">
+          <input class="search-field" type="text" id="townInput" placeholder="Town or estate" style="max-width:220px;">
+          <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section style="padding-top:0;">
+    <div class="wrap" style="display:grid; grid-template-columns:260px 1fr; gap:32px; align-items:start;">
+
+      <!-- ---------- Filters sidebar ---------- -->
+      <aside class="filters">
+        <h4>Filters</h4>
+
+        <div class="filter-group">
+          <label class="muted" style="display:block; margin-bottom:8px;">Category</label>
+          <select id="categorySelect" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:4px;">
+            <option value="">All categories</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="muted" style="display:block; margin-bottom:8px;">Minimum rating</label>
+          <div class="chip-row" id="ratingChips">
+            <span class="chip" data-value="">Any</span>
+            <span class="chip" data-value="4">4+ ★</span>
+            <span class="chip" data-value="4.5">4.5+ ★</span>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label class="muted" style="display:block; margin-bottom:8px;">Price range (KSh)</label>
+          <div style="display:flex; gap:8px;">
+            <input type="number" id="priceMin" placeholder="Min" style="width:100%; padding:9px; border:1px solid var(--line); border-radius:4px;">
+            <input type="number" id="priceMax" placeholder="Max" style="width:100%; padding:9px; border:1px solid var(--line); border-radius:4px;">
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label class="muted" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" id="verifiedOnly"> Verified providers only
+          </label>
+        </div>
+
+        <div class="filter-group">
+          <label class="muted" style="display:block; margin-bottom:8px;">Available on</label>
+          <div class="chip-row" id="dayChips">
+            ${''}
+          </div>
+        </div>
+
+        <button class="btn btn-outline btn-block btn-sm" id="clearFiltersBtn">Clear all filters</button>
+      </aside>
+
+      <!-- ---------- Results ---------- -->
+      <div>
+        <div class="section-head" style="margin-bottom:16px;">
+          <span class="muted" id="resultsCount">Loading…</span>
+          <select id="sortSelect" style="padding:9px 12px; border:1px solid var(--line); border-radius:4px; font-family:inherit;">
+            <option value="relevance">Sort: Relevance</option>
+            <option value="rating">Sort: Highest rated</option>
+            <option value="price">Sort: Lowest price</option>
+            <option value="newest">Sort: Newest</option>
+          </select>
+        </div>
+
+        <div class="card-grid" id="resultsGrid"><div class="spinner"></div></div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap footer-bottom" style="border-top:none; padding-top:0;">
+    <span>© <span id="year"></span> Karibu Directory.</span>
+    <a href="index.html">Home</a>
+  </div>
+</footer>
+
+<script src="assets/js/api.js"></script>
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+document.getElementById('dayChips').innerHTML = DAYS.map(d => `<span class="chip" data-value="${d}">${d}</span>`).join('');
+
+const state = {
+  q: '', town: '', category: '', minRating: '', priceMin: '', priceMax: '',
+  verified: false, day: '', sort: 'relevance', page: 1
+};
+
+function readFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  state.q = params.get('q') || '';
+  state.town = params.get('town') || '';
+  state.category = params.get('category') || '';
+  document.getElementById('qInput').value = state.q;
+  document.getElementById('townInput').value = state.town;
+}
+
+async function populateCategories() {
+  const select = document.getElementById('categorySelect');
+  try {
+    const cats = await apiRequest('/categories');
+    cats.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.slug;
+      opt.textContent = c.name;
+      if (c.slug === state.category) opt.selected = true;
+      select.appendChild(opt);
+    });
+  } catch { /* select just stays with "All categories" */ }
+}
+
+function renderProviderCard(p) {
+  const img = p.image_url
+    ? `<img class="provider-avatar" src="${API_BASE.replace('/api','')}${p.image_url}" alt="">`
+    : `<div class="provider-avatar">${initials(p.name)}</div>`;
+  return `
+    <a href="provider.html?id=${p.id}" class="provider-card ${p.featured ? 'featured' : ''}">
+      <div class="provider-card-top">
+        ${img}
+        <div>
+          <h3>${escapeHtml(p.name)}</h3>
+          <p class="provider-meta">${escapeHtml(p.category_name)} · ${escapeHtml(p.location_town)}</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        ${p.verified ? `<span class="badge badge-verified">Verified</span>` : ''}
+        ${p.featured ? `<span class="badge badge-featured">Featured</span>` : ''}
+      </div>
+      <p class="provider-bio">${escapeHtml((p.bio || '').slice(0, 90))}${(p.bio || '').length > 90 ? '…' : ''}</p>
+      <p class="muted">${formatKsh(p.price_min, p.price_max)}</p>
+      <div class="rating">
+        ${starIcon()}
+        <span>${p.rating_count > 0 ? `${p.rating_avg.toFixed(1)} (${p.rating_count})` : 'No reviews yet'}</span>
+      </div>
+    </a>`;
+}
+
+async function runSearch() {
+  const grid = document.getElementById('resultsGrid');
+  grid.innerHTML = '<div class="spinner"></div>';
+
+  const params = new URLSearchParams();
+  if (state.q) params.set('q', state.q);
+  if (state.town) params.set('town', state.town);
+  if (state.category) params.set('category', state.category);
+  if (state.minRating) params.set('minRating', state.minRating);
+  if (state.priceMin) params.set('priceMin', state.priceMin);
+  if (state.priceMax) params.set('priceMax', state.priceMax);
+  if (state.verified) params.set('verified', 'true');
+  if (state.day) params.set('day', state.day);
+  params.set('sort', state.sort);
+  params.set('page', state.page);
+  params.set('limit', 12);
+
+  try {
+    const data = await apiRequest(`/providers?${params.toString()}`);
+    document.getElementById('resultsCount').textContent = `${data.pagination.total} provider${data.pagination.total === 1 ? '' : 's'} found`;
+
+    if (!data.results.length) {
+      grid.innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1;">
+          <h4>No providers match those filters</h4>
+          <p>Try widening your search — a different location, or clearing a filter.</p>
+        </div>`;
+      document.getElementById('pagination').innerHTML = '';
+      return;
+    }
+
+    grid.innerHTML = data.results.map(renderProviderCard).join('');
+    renderPagination(data.pagination);
+  } catch (err) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">Couldn't load results. ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderPagination(p) {
+  const el = document.getElementById('pagination');
+  if (p.totalPages <= 1) { el.innerHTML = ''; return; }
+  let html = `<button ${p.page === 1 ? 'disabled' : ''} data-page="${p.page - 1}">‹</button>`;
+  for (let i = 1; i <= p.totalPages; i++) {
+    html += `<button class="${i === p.page ? 'active' : ''}" data-page="${i}">${i}</button>`;
+  }
+  html += `<button ${p.page === p.totalPages ? 'disabled' : ''} data-page="${p.page + 1}">›</button>`;
+  el.innerHTML = html;
+  el.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.page = parseInt(btn.dataset.page);
+      runSearch();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+}
+
+document.getElementById('searchForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  state.q = document.getElementById('qInput').value.trim();
+  state.town = document.getElementById('townInput').value.trim();
+  state.page = 1;
+  runSearch();
+});
+
+document.getElementById('categorySelect').addEventListener('change', (e) => {
+  state.category = e.target.value; state.page = 1; runSearch();
+});
+document.getElementById('sortSelect').addEventListener('change', (e) => {
+  state.sort = e.target.value; state.page = 1; runSearch();
+});
+document.getElementById('priceMin').addEventListener('change', (e) => { state.priceMin = e.target.value; state.page = 1; runSearch(); });
+document.getElementById('priceMax').addEventListener('change', (e) => { state.priceMax = e.target.value; state.page = 1; runSearch(); });
+document.getElementById('verifiedOnly').addEventListener('change', (e) => { state.verified = e.target.checked; state.page = 1; runSearch(); });
+
+function wireChipGroup(containerId, onSelect) {
+  const container = document.getElementById(containerId);
+  container.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      container.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      onSelect(chip.dataset.value);
+    });
+  });
+}
+wireChipGroup('ratingChips', (val) => { state.minRating = val; state.page = 1; runSearch(); });
+wireChipGroup('dayChips', (val) => { state.day = val; state.page = 1; runSearch(); });
+document.querySelector('#ratingChips .chip').classList.add('active');
+
+document.getElementById('clearFiltersBtn').addEventListener('click', () => {
+  Object.assign(state, { q:'', town:'', category:'', minRating:'', priceMin:'', priceMax:'', verified:false, day:'', sort:'relevance', page:1 });
+  document.getElementById('qInput').value = '';
+  document.getElementById('townInput').value = '';
+  document.getElementById('categorySelect').value = '';
+  document.getElementById('sortSelect').value = 'relevance';
+  document.getElementById('priceMin').value = '';
+  document.getElementById('priceMax').value = '';
+  document.getElementById('verifiedOnly').checked = false;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  document.querySelector('#ratingChips .chip').classList.add('active');
+  runSearch();
+});
+
+readFromUrl();
+populateCategories().then(runSearch);
+</script>
+
+</body>
+</html>
