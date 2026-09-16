@@ -21,6 +21,9 @@ const adminRoutes = require('./routes/admin');
 
 const app = express();
 
+// Render sits behind a proxy — trust it so rate limiting works correctly
+app.set('trust proxy', 1);
+
 // ---------- Core security & parsing middleware ----------
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' } // allow images to load cross-origin on the frontend
